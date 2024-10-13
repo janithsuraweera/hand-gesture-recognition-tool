@@ -1,16 +1,30 @@
-# This is a sample Python script.
+import cv2
+import mediapipe as mp
 
-# Press Ctrl+F5 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+mp_hands = mp.solutions.hands
+mp_drawing = mp.solutions.drawing_utils
 
+hands = mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.7)
+cap = cv2.VideoCapture(0)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press F9 to toggle the breakpoint.
+while cap.isOpened():
+    success, image = cap.read()
+    if not success:
+        print("Failed to grab frame")
+        break
 
+    image = cv2.flip(image, 1)
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    results = hands.process(image_rgb)
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+    if results.multi_hand_landmarks:
+        for hand_landmarks in results.multi_hand_landmarks:
+            mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    cv2.imshow("Hand Gesture Recognition", image)
+
+    if cv2.waitKey(5) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
